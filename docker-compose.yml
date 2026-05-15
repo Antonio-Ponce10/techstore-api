@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  postgres-db:
+    image: postgres:15
+    container_name: techstore-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: techstore_db
+    ports:
+      - "5433:5432"
