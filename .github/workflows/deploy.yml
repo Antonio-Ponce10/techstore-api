@@ -1,0 +1,49 @@
+name: Deploy to Amazon ECR
+
+on:
+  push:
+    branches:
+      - main # Cambia a "master" si tu rama principal se llama master
+
+jobs:
+  build-and-push:
+    name: Build and Push to ECR
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout del código
+      uses: actions/checkout@v3
+
+    - name: Configurar Java 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: maven
+
+    - name: Compilar el proyecto con Maven
+      run: mvn clean package -DskipTests
+
+    - name: Configurar Credenciales de AWS
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+        aws-region: us-east-1
+
+    - name: Iniciar sesión en Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Construir, etiquetar y subir la imagen a ECR
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: techstore-api-repo
+        IMAGE_TAG: latest
+      run: |
+        # Construye la imagen Docker usando tu Dockerfile
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        
+        # Sube la imagen a tu repositorio privado de AWS
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
