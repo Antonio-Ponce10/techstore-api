@@ -1,3 +1,5 @@
+package cl.techstore.api.config;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.regions.Region;
@@ -9,7 +11,7 @@ public class SqsConfig {
     @Bean
     public SqsClient sqsClient() {
         return SqsClient.builder()
-                .region(Region.US_EAST_1) // La región habitual de AWS Academy
+                .region(Region.US_EAST_1)
                 .build();
     }
 }

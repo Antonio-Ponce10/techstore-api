@@ -2,9 +2,7 @@ package cl.techstore.api.controller;
 
 import cl.techstore.api.model.Category;
 import cl.techstore.api.service.CategoryService;
-// 1. IMPORTAMOS EL SERVICIO DE SQS Y LA SEGURIDAD
 import cl.techstore.api.service.SqsAuditService; 
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +15,6 @@ public class CategoryController {
     @Autowired
     private CategoryService categoryService;
 
-    // 2. INYECTAMOS EL SERVICIO DE AUDITORÍA SQS
     @Autowired
     private SqsAuditService sqsAuditService;
 
@@ -32,19 +29,17 @@ public class CategoryController {
         Category nuevaCategoria = categoryService.createCategory(category);
         
         try {
-            // Intentamos obtener el correo del usuario logueado con JWT
-            String usuarioLogueado = SecurityContextHolder.getContext().getAuthentication().getName();
+            // Como no hay JWT, usamos un usuario por defecto para la auditoría
+            String usuarioLogueado = "admin@techstore.cl"; 
             
-            // 3. ENVIAMOS LA AUDITORÍA A AWS SQS
-            // Asegúrate de que los métodos getId() y getName() correspondan a tu modelo Category
             sqsAuditService.enviarAuditoria(
                 "CREAR", 
                 nuevaCategoria.getId(), 
-                nuevaCategoria.getName(), // O getNombre() si lo tienes en español en tu modelo
+                nuevaCategoria.getName(), 
                 usuarioLogueado
             );
         } catch (Exception e) {
-            System.err.println("Aviso: No se pudo enviar la auditoría a SQS o no hay token JWT válido.");
+            System.err.println("Aviso: No se pudo enviar la auditoría a SQS");
         }
 
         return nuevaCategoria;
